@@ -1,0 +1,329 @@
+from tkinter import *
+from tkinter import messagebox
+import random
+import time
+
+game = input("Which game do you want to play - rock paper scissors/2048/tic-tac-toe? ")
+
+if game == "tic-tac-toe":
+    def print_board(board):
+        for row in board:
+            print(" | ".join(row))
+            print("-" * 9)
+
+    def check_winner(board, player):
+        for row in board:
+            if all([cell == player for cell in row]):
+                return True
+
+        for col in range(3):
+            if all([board[row][col] == player for row in range(3)]):
+                return True
+
+        if all([board[i][i] == player for i in range(3)]) or all([board[i][2 - i] == player for i in range(3)]):
+            return True
+
+        return False
+
+    def is_board_full(board):
+        return all([cell != " " for row in board for cell in row])
+
+    def main():
+        board = [[" " for _ in range(3)] for _ in range(3)]
+        players = ["X", "O"]
+        current_player = 0
+
+        while True:
+            print_board(board)
+            print(f"Player {players[current_player]}'s turn")
+
+            row = int(input("Enter row (0, 1, 2): "))
+            col = int(input("Enter column (0, 1, 2): "))
+
+            if board[row][col] == " ":
+                board[row][col] = players[current_player]
+            else:
+                print("Cell already occupied. Try again.")
+                continue
+
+            if check_winner(board, players[current_player]):
+                print_board(board)
+                print(f"Player {players[current_player]} wins!")
+                break
+            elif is_board_full(board):
+                print_board(board)
+                print("It's a tie!")
+                break
+
+            current_player = 1 - current_player
+
+    if __name__ == "__main__":
+        main()
+
+elif game == "rock paper scissors":
+    print("---------------Rock paper scissor game (type 'quit' to exit the game)-----------------------")
+
+    choices = ["Rock", "Paper", "Scissors"]
+
+    while True:
+        print()
+        user_choice = input("Choose Rock, Paper, or Scissors: ").strip().capitalize()
+        print()
+        time.sleep(0.5)
+
+        if user_choice == "Quit":
+            print()
+            print("--------------Sorry to see you go! :(----------------")
+            break
+
+        if user_choice not in choices:
+            print()
+            print("Invalid choice. Please choose Rock, Paper, or Scissors.")
+            continue
+
+        computer_choice = random.choice(choices)
+        print(f"You chose {user_choice}, and the computer chose {computer_choice}.")
+
+        if user_choice == computer_choice:
+            print()
+            print("Analyzing...")
+            time.sleep(1)
+            print()
+            print("It's a tie!")
+            print()
+            print("-----------------Thanks for playing!------------------")
+        elif (
+            (user_choice == "Rock" and computer_choice == "Scissors")
+            or (user_choice == "Paper" and computer_choice == "Rock")
+            or (user_choice == "Scissors" and computer_choice == "Paper")
+        ):
+            print()
+            print("Analyzing...")
+            time.sleep(1)
+            print()
+            print("You win!")
+            print()
+            print("-----------------Thanks for playing!------------------")
+        else:
+            print()
+            print("Analyzing...")
+            time.sleep(1)
+            print()
+            print("Computer wins!")
+            print()
+            print("-----------------Thanks for playing!------------------")
+
+elif game == "2048":
+    class Board:
+        bg_color = {
+            '2': '#eee4da',
+            '4': '#ede0c8',
+            '8': '#edc850',
+            '16': '#edc53f',
+            '32': '#f67c5f',
+            '64': '#f65e3b',
+            '128': '#edcf72',
+            '256': '#edcc61',
+            '512': '#f2b179',
+            '1024': '#f59563',
+            '2048': '#edc22e',
+        }
+        color = {
+            '2': '#776e65',
+            '4': '#f9f6f2',
+            '8': '#f9f6f2',
+            '16': '#f9f6f2',
+            '32': '#f9f6f2',
+            '64': '#f9f6f2',
+            '128': '#f9f6f2',
+            '256': '#f9f6f2',
+            '512': '#776e65',
+            '1024': '#f9f6f2',
+            '2048': '#f9f6f2',
+        }
+
+        def __init__(self):
+            self.n = 4
+            self.window = Tk()
+            self.window.title('2048 Game')
+            self.gameArea = Frame(self.window, bg='azure3')
+            self.board = []
+            self.gridCell = [[0] * 4 for i in range(4)]
+            self.compress = False
+            self.merge = False
+            self.moved = False
+            self.score = 0
+
+            for i in range(4):
+                rows = []
+                for j in range(4):
+                    l = Label(self.gameArea, text='', bg='azure4', font=('arial', 22, 'bold'), width=4, height=2)
+                    l.grid(row=i, column=j, padx=7, pady=7)
+
+                    rows.append(l)
+                self.board.append(rows)
+            self.gameArea.grid()
+
+        def reverse(self):
+            for ind in range(4):
+                i = 0
+                j = 3
+                while(i < j):
+                    self.gridCell[ind][i], self.gridCell[ind][j] = self.gridCell[ind][j], self.gridCell[ind][i]
+                    i += 1
+                    j -= 1
+
+        def transpose(self):
+            self.gridCell = [list(t) for t in zip(*self.gridCell)]
+
+        def compressGrid(self):
+            self.compress = False
+            temp = [[0] * 4 for i in range(4)]
+            for i in range(4):
+                cnt = 0
+                for j in range(4):
+                    if self.gridCell[i][j] != 0:
+                        temp[i][cnt] = self.gridCell[i][j]
+                        if cnt != j:
+                            self.compress = True
+                        cnt += 1
+            self.gridCell = temp
+
+        def mergeGrid(self):
+            self.merge = False
+            for i in range(4):
+                for j in range(4 - 1):
+                    if self.gridCell[i][j] == self.gridCell[i][j + 1] and self.gridCell[i][j] != 0:
+                        self.gridCell[i][j] *= 2
+                        self.gridCell[i][j + 1] = 0
+                        self.score += self.gridCell[i][j]
+                        self.merge = True
+
+        def random_cell(self):
+            cells = []
+            for i in range(4):
+                for j in range(4):
+                    if self.gridCell[i][j] == 0:
+                        cells.append((i, j))
+            curr = random.choice(cells)
+            i = curr[0]
+            j = curr[1]
+            self.gridCell[i][j] = 2
+
+        def can_merge(self):
+            for i in range(4):
+                for j in range(3):
+                    if self.gridCell[i][j] == self.gridCell[i][j+1]:
+                        return True
+
+            for i in range(3):
+                for j in range(4):
+                    if self.gridCell[i+1][j] == self.gridCell[i][j]:
+                        return True
+            return False
+
+        def paintGrid(self):
+            for i in range(4):
+                for j in range(4):
+                    if self.gridCell[i][j] == 0:
+                        self.board[i][j].config(text='', bg='azure4')
+                    else:
+                        self.board[i][j].config(text=str(self.gridCell[i][j]),
+                                                 bg=self.bg_color.get(str(self.gridCell[i][j])),
+                                                 fg=self.color.get(str(self.gridCell[i][j])))
+
+    class Game:
+        def __init__(self, gamepanel):
+            self.gamepanel = gamepanel
+            self.end = False
+            self.won = False
+
+        def start(self):
+            self.gamepanel.random_cell()
+            self.gamepanel.random_cell()
+            self.gamepanel.paintGrid()
+            self.gamepanel.window.bind('<Key>', self.link_keys)
+            self.gamepanel.window.mainloop()
+
+        def link_keys(self, event):
+            if self.end or self.won:
+                return
+
+            self.gamepanel.compress = False
+            self.gamepanel.merge = False
+            self.gamepanel.moved = False
+
+            pressed_key = event.keysym
+
+            if pressed_key == 'Up':
+                self.gamepanel.transpose()
+                self.gamepanel.compressGrid()
+                self.gamepanel.mergeGrid()
+                self.gamepanel.moved = self.gamepanel.compress or self.gamepanel.merge
+                self.gamepanel.compressGrid()
+                self.gamepanel.transpose()
+
+            elif pressed_key == 'Down':
+                self.gamepanel.transpose()
+                self.gamepanel.reverse()
+                self.gamepanel.compressGrid()
+                self.gamepanel.mergeGrid()
+                self.gamepanel.moved = self.gamepanel.compress or self.gamepanel.merge
+                self.gamepanel.compressGrid()
+                self.gamepanel.reverse()
+                self.gamepanel.transpose()
+
+            elif pressed_key == 'Left':
+                self.gamepanel.compressGrid()
+                self.gamepanel.mergeGrid()
+                self.gamepanel.moved = self.gamepanel.compress or self.gamepanel.merge
+                self.gamepanel.compressGrid()
+
+            elif pressed_key == 'Right':
+                self.gamepanel.reverse()
+                self.gamepanel.compressGrid()
+                self.gamepanel.mergeGrid()
+                self.gamepanel.moved = self.gamepanel.compress or self.gamepanel.merge
+                self.gamepanel.compressGrid()
+                self.gamepanel.reverse()
+            else:
+                pass
+
+            self.gamepanel.paintGrid()
+            print(self.gamepanel.score)
+
+            flag = 0
+            for i in range(4):
+                for j in range(4):
+                    if(self.gamepanel.gridCell[i][j] == 2048):
+                        flag = 1
+                        break
+
+            if(flag == 1):  # found 2048
+                self.won = True
+                messagebox.showinfo('2048', message='You Wonnn!!')
+                print("won")
+                return
+
+            for i in range(4):
+                for j in range(4):
+                    if self.gamepanel.gridCell[i][j] == 0:
+                        flag = 1
+                        break
+
+            if not (flag or self.gamepanel.can_merge()):
+                self.end = True
+                messagebox.showinfo('2048', 'Game Over!!!')
+                print("Over")
+
+            if self.gamepanel.moved:
+                self.gamepanel.random_cell()
+
+            self.gamepanel.paintGrid()
+
+    gamepanel = Board()
+    game2048 = Game(gamepanel)
+    game2048.start()
+
+else:
+    print("Error, choose the right option")
